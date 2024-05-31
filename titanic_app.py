@@ -1,20 +1,20 @@
 import streamlit as st
 import pickle
 from datetime import datetime
+import numpy as np
+import pandas as pd
 
 startTime = datetime.now()
-# import znanych nam bibliotek
 
+# Importujemy znane nam biblioteki
 filename = "model.h5"
 model = pickle.load(open(filename, 'rb'))
-# otwieramy wcześniej wytrenowany model
+# Otwieramy wcześniej wytrenowany model
 
 sex_d = {0: "Kobieta", 1: "Mężczyzna"}
 pclass_d = {0: "Pierwsza", 1: "Druga", 2: "Trzecia"}
 embarked_d = {0: "Cherbourg", 1: "Queenstown", 2: "Southampton"}
 
-
-# o ile wcześniej kodowaliśmy nasze zmienne, to teraz wprowadzamy etykiety z ich nazewnictwem
 def main():
     st.set_page_config(page_title="Czy przeżyłbyś katastrofę?")
     overview = st.container()
@@ -39,14 +39,24 @@ def main():
         parch_slider = st.slider("# Liczba rodziców i/lub dzieci", min_value=0, max_value=6)
         fare_slider = st.slider("Cena biletu", min_value=0, max_value=500, step=10)
 
-    data = []
+    # Przygotowanie wektora danych wejściowych jako DataFrame z nazwami kolumn
+    data = pd.DataFrame({
+        'Pclass': [pclass_radio],
+        'Age': [age_slider],
+        'SibSp': [sibsp_slider],
+        'Parch': [parch_slider],
+        'Fare': [fare_slider],
+        'Embarked': [embarked_radio],
+        'male': [sex_radio]
+    })
+
+    # Przeprowadzenie predykcji
     survival = model.predict(data)
     s_confidence = model.predict_proba(data)
 
     with prediction:
         st.header("Czy dana osoba przeżyje? {0}".format("Tak" if survival[0] == 1 else "Nie"))
-        st.subheader("Pewność predykcji {0:.2f} %".format(s_confidence[0][survival][0] * 100))
-
+        st.subheader("Pewność predykcji {0:.2f} %".format(s_confidence[0][survival[0]] * 100))
 
 if __name__ == "__main__":
     main()
